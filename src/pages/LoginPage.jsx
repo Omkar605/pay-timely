@@ -6,8 +6,8 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('oz@gmail.com');
-  const [password, setPassword] = useState('oz');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
