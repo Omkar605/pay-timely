@@ -1,43 +1,73 @@
-import { createContext, useContext, useEffect, useState } from "react";
 
+import { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
+
+const API_URL = "http://localhost:8080/api";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	// const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 		if (token) {
 			setIsAuthenticated(true);
 		}
-		}, []);
-		const login = (email, password) => {
+	}, []);
+
+	const login = async (email, password) => {
+		try {
+			// For development, allow mock login
 			if (email === "oz@gmail.com" && password === "oz") {
-				// Simulate a successful login
-				// In a real application, you would send a request to your server here
-				// and get a token in response.
-				// For example:
-				// const response = await fetch("/api/login", {
-				// method: "POST",
-				// headers: {
-				// "Content-Type": "application/json",
-				// },
-				// body: JSON.stringify({ email, password }),
-				// });
-				// const data = await response.json();
-				// localStorage.setItem("token", data.token);
-				localStorage.setItem("token", "your_token_here");
-                setIsAuthenticated(true);
-                return true;
+				localStorage.setItem("token", "mock_token");
+				setIsAuthenticated(true);
+				return true;
 			}
 
+			const response = await fetch(`${API_URL}/auth/login`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ email, password }),
+			});
+			
+			const data = await response.json();
+			
+			if (response.ok) {
+				localStorage.setItem("token", data.token);
+				setIsAuthenticated(true);
+				return true;
+			}
+			return false;
+		} catch (error) {
+			console.error("Login error:", error);
+			return false;
 		}
-		const register = ({ email }) => {
-  if (email === 'demo@paytimely.com') {
-    return { success: false, message: 'User already exists' };
-  }
-  return { success: true };
-};
+	};
+
+	const register = async ({ firstName, lastName, email, password }) => {
+		try {
+			const response = await axios.post(
+				`${API_URL}/auth/register`,
+				{ firstName, lastName, email, password },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					}
+				}
+			);
+			console.log(response.data);
+			if (response.data.status) {
+				return { success: true };
+			}
+			return { success: false, message: response.data?.message || 'Registration failed' };
+		} catch (error) {
+			console.error("Registration error:", error);
+			return { success: false, message: error.response?.data?.message || 'Server error' };
+		}
+	};
 
 		const logout = () => {
 			localStorage.removeItem("token");

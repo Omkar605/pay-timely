@@ -11,12 +11,12 @@ function Register() {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     if (data.password !== data.confirmPassword) {
       return alert('Passwords do not match.');
     }
 
-    const result = doRegister(data);
+    const result = await doRegister(data);
     if (result.success) {
       alert('Registration successful!');
       navigate('/login');
